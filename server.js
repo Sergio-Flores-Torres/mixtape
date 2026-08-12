@@ -2,6 +2,7 @@ import http from 'node:http';
 
 import config from './src/config.js';
 import { route } from './src/routes.js';
+import { updateStats } from './src/display.js';
 
 const PORT = config.listen?.port ?? 8787;
 const HOST = config.listen?.host ?? '127.0.0.1';
@@ -21,4 +22,5 @@ server.listen(PORT, HOST, () => {
   for (const [name, p] of Object.entries(config.providers ?? {})) {
     console.log(`  ${name}: ${p.requestsPerMinute ?? 'unlimited'} RPM, concurrency ${p.maxConcurrent ?? 1}`);
   }
+  updateStats();
 });

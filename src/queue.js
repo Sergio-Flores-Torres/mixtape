@@ -1,5 +1,6 @@
 import config from './config.js';
 import { stateFor, statFor } from './state.js';
+import { updateStats } from './display.js';
 
 function rpmDelay(state, provider) {
   const rpm = Number(provider.requestsPerMinute ?? 0);
@@ -18,6 +19,7 @@ export function enqueue(providerName, job) {
   if (state.pending.length || state.active >= Number(provider.maxConcurrent ?? 1)) stat.queued++;
   return new Promise((resolve, reject) => {
     state.pending.push({ job, resolve, reject });
+    updateStats();
     pump(providerName);
   });
 }
@@ -43,6 +45,7 @@ async function pump(providerName) {
   const item = state.pending.shift();
   state.active++;
   state.timestamps.push(Date.now());
+  updateStats();
 
   try {
     const result = await item.job();
@@ -53,6 +56,7 @@ async function pump(providerName) {
     item.reject(err);
   } finally {
     state.active--;
+    updateStats();
     pump(providerName);
   }
 }

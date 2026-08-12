@@ -38,10 +38,10 @@
     "gemini-2.5-flash": {
       "provider": "gemini"
     },
-    "gemma4-31b": {
+    "gemma-4-31b-it": {
       "provider": "gemini"
     },
-    "gemma4-26b": {
+    "gemma-4-26b-it": {
       "provider": "gemini"
     },
     "gemini-3.6-flash": {
@@ -50,7 +50,7 @@
     "gemini-3.5-flash": {
       "provider": "gemini"
     },
-    "gemini-3.0-flash": {
+    "gemini-3-flash-preview": {
       "provider": "gemini"
     }
   }

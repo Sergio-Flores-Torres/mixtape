@@ -6,22 +6,37 @@ import { json, readBody } from './http.js';
 import { providerForModel, modelsResponse } from './models.js';
 import { enqueue } from './queue.js';
 import { fetchWithRetry, providerHeaders } from './upstream.js';
+import { updateStats } from './display.js';
 
 async function handleChat(req, res) {
   const raw = await readBody(req);
   let body;
   try { body = JSON.parse(raw.toString('utf8')); }
-  catch { return json(res, 400, { error: { message: 'Invalid JSON', type: 'invalid_request_error' } }); }
+  catch {
+    updateStats({ provider: 'unknown', model: 'unknown', status: '400 Bad JSON' });
+    return json(res, 400, { error: { message: 'Invalid JSON', type: 'invalid_request_error' } });
+  }
 
   const model = body.model;
-  if (!model) return json(res, 400, { error: { message: 'Missing model', type: 'invalid_request_error' } });
+  if (!model) {
+    updateStats({ provider: 'unknown', model: 'missing', status: '400 Missing Model' });
+    return json(res, 400, { error: { message: 'Missing model', type: 'invalid_request_error' } });
+  }
 
   const [providerName, modelConfig] = providerForModel(model);
-  if (!providerName) return json(res, 404, { error: { message: `No proxy route configured for model: ${model}`, type: 'invalid_request_error' } });
+  if (!providerName) {
+    updateStats({ provider: 'none', model, status: '404 Not Found' });
+    return json(res, 404, { error: { message: `No proxy route configured for model: ${model}`, type: 'invalid_request_error' } });
+  }
 
   const provider = config.providers[providerName];
   const apiKey = process.env[provider.apiKeyEnv];
-  if (!apiKey) return json(res, 500, { error: { message: `Missing environment variable ${provider.apiKeyEnv}`, type: 'proxy_error' } });
+  if (!apiKey) {
+    updateStats({ provider: providerName, model, status: '500 Missing API Key' });
+    return json(res, 500, { error: { message: `Missing environment variable ${provider.apiKeyEnv}`, type: 'proxy_error' } });
+  }
+
+  updateStats({ provider: providerName, model, status: 'in progress' });
 
   const outbound = { ...body, ...(modelConfig?.body ?? {}) };
   const url = provider.baseUrl.replace(/\/$/, '') + '/chat/completions';
@@ -34,8 +49,10 @@ async function handleChat(req, res) {
     }, providerName));
 
     res.statusCode = response.status;
+    updateStats({ provider: providerName, model, status: `${response.status}` });
+
     for (const [k, v] of response.headers) {
-      if (!['connection', 'keep-alive', 'transfer-encoding', 'content-length'].includes(k.toLowerCase())) res.setHeader(k, v);
+      if (!['connection', 'keep-alive', 'transfer-encoding', 'content-length', 'content-encoding'].includes(k.toLowerCase())) res.setHeader(k, v);
     }
     res.setHeader('x-mixtape-provider', providerName);
     res.setHeader('x-mixtape-proxy-model', model);
@@ -44,6 +61,7 @@ async function handleChat(req, res) {
     }
     res.end();
   } catch (err) {
+    updateStats({ provider: providerName, model, status: '502 Error' });
     json(res, 502, { error: { message: `Upstream request failed: ${err.message}`, type: 'proxy_error' } });
   }
 }
