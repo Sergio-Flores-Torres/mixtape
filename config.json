@@ -9,22 +9,14 @@
       "apiKeyEnv": "GEMINI_API_KEY",
       "requestsPerMinute": 5,
       "maxConcurrent": 1,
-      "maxRetries": 4,
-      "models": [
-        "gemini-2.5-flash"
-      ]
+      "maxRetries": 4
     },
     "nvidia": {
       "baseUrl": "https://integrate.api.nvidia.com/v1",
       "apiKeyEnv": "NVIDIA_API_KEY",
       "requestsPerMinute": 20,
       "maxConcurrent": 1,
-      "maxRetries": 4,
-      "models": [
-        "z-ai/glm-5.2",
-        "nvidia/nemotron-3-ultra-550b-a55b",
-        "nvidia/nemotron-3-nano-30b-a3b"
-      ]
+      "maxRetries": 4
     }
   },
   "models": {
@@ -44,6 +36,21 @@
       "provider": "nvidia"
     },
     "gemini-2.5-flash": {
+      "provider": "gemini"
+    },
+    "gemma4-31b": {
+      "provider": "gemini"
+    },
+    "gemma4-26b": {
+      "provider": "gemini"
+    },
+    "gemini-3.6-flash": {
+      "provider": "gemini"
+    },
+    "gemini-3.5-flash": {
+      "provider": "gemini"
+    },
+    "gemini-3.0-flash": {
       "provider": "gemini"
     }
   }

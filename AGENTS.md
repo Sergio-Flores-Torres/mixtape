@@ -26,7 +26,7 @@ export NVIDIA_API_KEY="your-nvidia-key"
 
 ### Start Server
 ```bash
-./run.sh
+./mixtape.sh
 # or via npm:
 npm start
 # or directly:
@@ -72,7 +72,7 @@ The codebase consists of four root-level files:
    - `GET /v1/models`: Transforms `config.models` into an OpenAI-compatible model list response.
    - `POST /v1/chat/completions`: Handled by `handleChat`.
 2. **Model & Provider Resolution** (`providerForModel`):
-   - Checks `config.models[model]` first. If absent, searches `config.providers[*].models`.
+   - Reads `config.models[model]` and returns its `provider` (plus the model config entry). If the model is not listed in the top-level `models` map, resolution fails (returns `[null, null]`), and `handleChat` rejects the request with an HTTP 404 `{ error: { message: 'No proxy route configured for model: <model>', type: 'invalid_request_error' } }`. Provider objects no longer carry their own `models` arrays — the top-level `models` map is the single source of truth for model-to-provider routing.
 3. **Queueing & Rate Limiting** (`enqueue`, `pump`, `rpmDelay`):
    - Queues request jobs in per-provider state objects (`stateFor`).
    - Restricts concurrent requests to `provider.maxConcurrent` (defaults to 1).
@@ -98,8 +98,7 @@ The codebase consists of four root-level files:
   - `requestsPerMinute`: Sliding 60-second limit window.
   - `maxConcurrent`: Maximum concurrent outgoing requests.
   - `maxRetries`: Maximum retry attempts for failed/throttled calls.
-  - `models`: Array of model IDs routing to this provider.
-- **`models`**: Maps explicit model names to provider settings and optional payload fields:
+- **`models`**: The single source of truth for model routing. Maps explicit model names to provider settings and optional payload fields:
   - `provider`: Reference to a provider key in `providers`.
   - `body`: Optional object merged into outgoing payload (e.g., `chat_template_kwargs`, `reasoning_budget`).
 

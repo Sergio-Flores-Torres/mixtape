@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { URL } from 'node:url';
 
 const config = JSON.parse(fs.readFileSync(new URL('./config.json', import.meta.url), 'utf8'));
+
 const PORT = config.listen?.port ?? 8787;
 const HOST = config.listen?.host ?? '127.0.0.1';
 
@@ -12,9 +13,6 @@ const stats = new Map();
 function providerForModel(model) {
   const entry = config.models?.[model];
   if (entry?.provider && config.providers?.[entry.provider]) return [entry.provider, entry];
-  for (const [name, p] of Object.entries(config.providers ?? {})) {
-    if ((p.models ?? []).includes(model)) return [name, { provider: name }];
-  }
   return [null, null];
 }
 
