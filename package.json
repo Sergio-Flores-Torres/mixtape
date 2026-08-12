@@ -1,0 +1,13 @@
+{
+  "name": "crush-rate-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local OpenAI-compatible rate-limiting proxy for Crush and other coding agents",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
